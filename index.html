@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حراج بلس - الإعلانات</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* إخفاء شريط التمرير لكن مع الحفاظ على وظيفته */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* حاوية السلايدر */
+        .slider-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            height: 100%;
+            width: 100%;
+            background: #f1f5f9; 
+            cursor: grab;
+        }
+        .slider-container:active {
+            cursor: grabbing;
+        }
+
+        /* عنصر الصورة */
+        .slider-item {
+            scroll-snap-align: center;
+            flex-shrink: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        /* الأسهم */
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, .55);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 5;
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .arrow:hover {
+            background: rgba(0, 0, 0, .75);
+        }
+        .arrow.left { left: 8px; }
+        .arrow.right { right: 8px; }
+
+        /* النقاط (Pagination) */
+        .dots {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 5;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 6px;
+            border-radius: 10px;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .4);
+            transition: all 0.2s;
+        }
+        .dot.active {
+            background: #fff;
+            transform: scale(1.2);
+        }
+
+        /* العداد الرقمي */
+        .counter {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, .6);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            z-index: 5;
+            font-weight: bold;
+        }
+
+        /* النافذة المنبثقة للصور */
+        #imgModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body class="pb-20">
+
+    <!-- الرأس -->
+    <header class="bg-white shadow-sm sticky top-0 z-40 p-4">
+        <div class="container mx-auto max-w-4xl flex flex-col items-center">
+            <h1 class="text-2xl font-extrabold text-blue-600 mb-3 tracking-wide">حراج بلس</h1>
+            <div class="relative w-full">
+                <input id="searchInput" oninput="doSearch()" placeholder="ابحث عن سيارة، جوال، أثاث..."
+                    class="w-full bg-gray-100 rounded-2xl py-3 px-10 outline-none focus:ring-2 focus:ring-blue-400 text-sm font-semibold transition-all">
+                <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="container mx-auto max-w-4xl px-3 mt-4">
+        <div id="noResults" class="hidden text-center py-10 text-gray-500 font-bold">
+            لا توجد نتائج تطابق بحثك 😔
+        </div>
+        
+        <div id="grid" class="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-3">
+            <!-- سيتم ملء المنتجات هنا بواسطة جافاسكريبت -->
+        </div>
+    </main>
+
+    <!-- المودال لعرض الصور -->
+    <div id="imgModal" onclick="closeModal()">
+        <span class="absolute top-5 right-5 text-white text-3xl font-bold cursor-pointer">&times;</span>
+        <img id="modalContent" class="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl">
+    </div>
+
+    <script>
+        const products = [
+            {
+                id: 1,
+                cat: "إلكترونيات",
+                title: "آيفون 15 برو ماكس",
+                desc: "تيتانيوم طبيعي، 256 جيجا، استخدام نظيف جداً مع الكرتون.",
+                region: "الرياض",
+                price: "4,200 ريال",
+                phone: "966500000000",
+                images: [
+                    "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop",
+                    
+                ]
+            },
+            {
+                id: 2,
+                cat: "سيارات",
+                title: "تويوتا كامري 2023",
+                desc: "فل كامل هايبرد، ممشى قليل، بودي وكالة خالي من الرش.",
+                region: "جدة",
+                price: "95,000 ريال",
+                phone: "966500000000",
+                images: [
+                    "https://images.unsplash.com/photo-1621007947382-bb3c3968e3bb?w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&auto=format&fit=crop"
+                ]
+            },
+            {
+                id: 3,
+                cat: "أثاث",
+                title: "كنب مودرن حرف L",
+                desc: "استخدام بسيط جداً، قماش مخمل فاخر، لون رمادي.",
+                region: "الدمام",
+                price: "1,500 ريال",
+                phone: "966500000000",
+                images: [
+                    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800&auto=format&fit=crop"
+                ]
+            },
+            {
+                id: 4,
+                cat: "حيوانات",
+                title: "قطط سكوتش فولد",
+                desc: "مطعمة ومدربة  لعوبة جداً.",
+                region: "الخبر",
+                price: "800 ريال",
+                phone: "966500000000",
+                images: [
+                    "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800&auto=format&fit=crop"
+                ]
+            },
+            {
+                id: 5,
+                cat: "أجهزة",
+                title: "سوني بلايستيشن 5",
+                desc: "نسخة القرص، مع يدين تحكم وشريط فيفا 24.",
+                region: "مكة",
+                price: "1,850 ريال",
+                phone: "966500000000",
+                images: [
+                    "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&auto=format&fit=crop"
+                ]
+            },
+            {
+                id: 6,
+                cat: "عقارات",
+                title: "شقة للإيجار حي الملقا",
+                desc: "3 غرف وصالة، مطبخ راكب، مكيفات سبليت.",
+                region: "الرياض",
+                price: "45,000 ريال",
+                phone: "966500000000",
+                images: [
+                    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop"
+                ]
+            }
+        ];
+
+        function renderProducts() {
+            const grid = document.getElementById("grid");
+            grid.innerHTML = "";
+            
+            products.forEach(p => {
+                const sliderImages = p.images.map(img => 
+                    `<img src="${img}" class="slider-item" onclick="viewImg(this)" loading="lazy" alt="${p.title}">`
+                ).join("");
+
+                const dots = p.images.length > 1 ? 
+                    `<div class="dots">
+                        ${p.images.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join("")}
+                     </div>` : "";
+
+                const controls = p.images.length > 1 ? `
+                    <div class="arrow left" onclick="slide(this, -1)">‹</div>
+                    <div class="arrow right" onclick="slide(this, 1)">›</div>
+                    <div class="counter">1 / ${p.images.length}</div>
+                    ${dots}
+                ` : "";
+
+                const html = `
+                <div class="product-box flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow duration-200">
+                    
+                    <div class="relative h-44 md:h-56 overflow-hidden bg-gray-200 group">
+                        ${controls}
+                        <div class="slider-container no-scrollbar" onscroll="updateUI(this)">
+                            ${sliderImages}
+                        </div>
+                    </div>
+
+                    <div class="p-3 flex flex-col text-right flex-grow">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-extrabold text-gray-900 text-[13px] leading-tight line-clamp-1">${p.title}</h3>
+                            <span class="text-[9px] bg-gray-100 text-gray-500 py-0.5 px-2 rounded-md whitespace-nowrap">${p.cat}</span>
+                        </div>
+                        
+                        <p class="text-[11px] text-gray-500 font-medium mb-2 line-clamp-2 leading-relaxed">${p.desc}</p>
+                        
+                        <div class="mt-auto">
+                            <div class="flex items-center text-[10px] text-gray-400 font-bold mb-2">
+                                <span class="ml-1">📍</span> ${p.region}
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="text-blue-600 font-extrabold text-sm">${p.price}</div>
+                                <a href="https://wa.me/${p.phone}?text=السلام عليكم، بخصوص إعلان ${p.title}" target="_blank"
+                                   class="bg-[#25D366] hover:bg-[#20bd5a] text-white py-1.5 px-3 rounded-lg text-[10px] font-bold flex items-center transition-colors">
+                                    <span>تواصل مع البائع</span>
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-8.683-2.031-9.676-.272-.99-.47-.149-.718.1-.248.248-1.016 1.152-1.29 1.152-.32 0-.395-.494-1.708-1.089-.868-.521-1.637-1.314-2.325-2.226-.816-1.082-1.229-2.049-1.328-2.296-.098-.248-.006-.381.118-.505.113-.113.248-.297.372-.446.124-.149.173-.248.248-.421.075-.173.025-.322-.025-.421-.049-.099-.446-1.066-.619-1.463-.167-.384-.336-.322-.46-.327-.113-.005-.248-.005-.383-.005-.136 0-.36.05-.546.248-.186.198-.718.718-.718 1.734s.743 2.008.842 2.132c.099.124 1.463 2.258 3.565 3.142 2.102.884 2.102.589 2.499.545.397-.044 1.289-.52 1.463-1.04.174-.52.174-.967.124-1.041z"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                grid.insertAdjacentHTML("beforeend", html);
+            });
+        }
+
+        renderProducts();
+
+        function slide(el, dir) {
+            const slider = el.parentElement.querySelector(".slider-container");
+            const scrollAmount = slider.offsetWidth;
+            slider.scrollBy({
+                left: dir * scrollAmount * -1, 
+                behavior: "smooth"
+            });
+        }
+
+        function updateUI(slider) {
+            const box = slider.parentElement;
+            const imgs = slider.children.length;
+            let scrollLeft = Math.abs(slider.scrollLeft);
+            const index = Math.round(scrollLeft / slider.offsetWidth);
+            const dots = box.querySelectorAll(".dot");
+            dots.forEach((d, i) => d.classList.toggle("active", i === index));
+            const counter = box.querySelector(".counter");
+            if (counter) counter.innerText = `${Math.min(index + 1, imgs)} / ${imgs}`;
+        }
+
+        function viewImg(img) {
+            const modal = document.getElementById("imgModal");
+            const modalImg = document.getElementById("modalContent");
+            modal.style.display = "flex";
+            modalImg.src = img.src;
+        }
+
+        function closeModal() {
+            document.getElementById("imgModal").style.display = "none";
+        }
+
+        function doSearch() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toLowerCase().trim();
+            const boxes = document.querySelectorAll(".product-box");
+            let hasResults = false;
+            const searchTerms = filter.split(" ");
+
+            boxes.forEach(box => {
+                const text = box.innerText.toLowerCase();
+                const match = searchTerms.every(term => text.includes(term));
+                if (match) {
+                    box.style.display = "flex";
+                    hasResults = true;
+                } else {
+                    box.style.display = "none";
+                }
+            });
+
+            const noResultsMsg = document.getElementById("noResults");
+            if (!hasResults && filter !== "") {
+                noResultsMsg.classList.remove("hidden");
+            } else {
+                noResultsMsg.classList.add("hidden");
+            }
+        }
+    </script>
+</body>
+</html>
