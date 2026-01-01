@@ -3,19 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سوق بلس </title>
+    <title>سوق</title>
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Fonts: Cairo only (Normal Font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            50: '#F9F6E8',
+                            100: '#F2E8C4',
+                            400: '#D4AF37',
+                            500: '#C5A059',
+                            600: '#B08D55',
+                            900: '#3E3116',
+                        },
+                        brandGreen: {
+                            500: '#10B981',
+                            600: '#059669',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                        serif: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: #f8fafc;
+            background: #FAFAFA;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* إخفاء شريط التمرير لكن مع الحفاظ على وظيفته */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -24,7 +54,6 @@
             scrollbar-width: none;
         }
 
-        /* حاوية السلايدر */
         .slider-container {
             display: flex;
             overflow-x: auto;
@@ -33,14 +62,13 @@
             -webkit-overflow-scrolling: touch;
             height: 100%;
             width: 100%;
-            background: #f1f5f9; 
+            background: #f3f4f6; 
             cursor: grab;
         }
         .slider-container:active {
             cursor: grabbing;
         }
 
-        /* عنصر الصورة */
         .slider-item {
             scroll-snap-align: center;
             flex-shrink: 0;
@@ -48,85 +76,88 @@
             height: 100%;
             object-fit: cover;
             cursor: pointer;
+            transition: transform 0.5s ease;
         }
 
-        /* الأسهم */
         .arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0, 0, 0, .55);
-            color: #fff;
-            width: 32px;
-            height: 32px;
-            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #D4AF37;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px;
             cursor: pointer;
             z-index: 5;
-            transition: background 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
             user-select: none;
         }
         .arrow:hover {
-            background: rgba(0, 0, 0, .75);
+            background: #fff;
+            color: #B08D55;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .arrow.left { left: 8px; }
-        .arrow.right { right: 8px; }
+        .arrow.left { left: 12px; }
+        .arrow.right { right: 12px; }
 
-        /* النقاط (Pagination) */
         .dots {
             position: absolute;
-            bottom: 8px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 5px;
+            gap: 6px;
             z-index: 5;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 6px;
-            border-radius: 10px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(2px);
+            padding: 4px 8px;
+            border-radius: 20px;
         }
         .dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, .4);
-            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
         }
         .dot.active {
-            background: #fff;
-            transform: scale(1.2);
+            background: #D4AF37;
+            transform: scale(1.3);
         }
 
-        /* العداد الرقمي */
         .counter {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, .6);
-            color: #fff;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1a1a1a;
             font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 9999px;
+            padding: 3px 10px;
+            border-radius: 2px;
             z-index: 5;
-            font-weight: bold;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            letter-spacing: 1px;
         }
 
-        /* النافذة المنبثقة للصور */
         #imgModal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, .95);
+            background: rgba(20, 20, 20, 0.95);
             z-index: 1000;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            backdrop-filter: blur(5px);
-            animation: fadeIn 0.2s ease-out;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out;
         }
 
         @keyframes fadeIn {
@@ -136,60 +167,67 @@
     </style>
 </head>
 
-<body class="pb-20">
+<body class="pb-20 text-gray-800">
 
-    <!-- الرأس -->
-    <header class="bg-white shadow-sm sticky top-0 z-40 p-4">
-<div class="container mx-auto max-w-4xl flex flex-col gap-3">
+    <!-- Header -->
+    <header class="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 shadow-sm transition-all duration-300">
+        <div class="container mx-auto max-w-5xl px-4 py-4 flex flex-col gap-4">
 
-    <!-- السطر الأول: الاسم في الوسط والزر على اليسار -->
-    <div class="flex items-center justify-center relative">
-        <!-- زر + إضافة إعلان على اليسار -->
-        <a href="https://wa.me/967783069725?text=السلام عليكم، حاب أضيف إعلان في سوق بلس"
-           target="_blank"
-           class="absolute left-0 bg-yellow-300 hover:bg-yellow-400 text-black text-xs font-bold px-4 py-2 rounded-xl transition">
-           + إضافة إعلان
-        </a>
+            <!-- Top Row -->
+            <div class="flex items-center justify-between relative">
+                <!-- Add Ad Button -->
+                <a href="https://wa.me/967783069725?text=السلام عليكم، حاب أضيف إعلان في سوق بلس"
+                   target="_blank"
+                   class="bg-gradient-to-r from-gold-400 to-gold-600 text-white text-xs font-bold px-5 py-2.5 rounded-sm hover:shadow-lg hover:shadow-gold-400/30 transition-all duration-300 transform hover:-translate-y-0.5 tracking-wide">
+                   + إعلان جديد
+                </a>
 
-        <!-- اسم الموقع في الوسط -->
-        <h1 class="text-2xl font-extrabold text-blue-600 tracking-wide">
-            سوق بلس
-        </h1>
-    </div>
+                <!-- Logo: Black Text with Green Plus -->
+                <h1 class="absolute left-1/2 transform -translate-x-1/2 text-3xl font-extrabold tracking-wide flex items-center gap-1">
+                    <span class="text-black">سوق</span>
+                    <span class="text-brandGreen-500 text-4xl leading-none" style="transform: translateY(2px);">+</span>
+                </h1>
+                
+                <div class="w-20"></div> 
+            </div>
 
-    <!-- سطر البحث -->
-    <div class="relative w-full">
-        <input id="searchInput" oninput="doSearch()" placeholder="ابحث عن سيارة، جوال، أثاث..."
-            class="w-full bg-gray-100 rounded-2xl py-3 px-10 outline-none focus:ring-2 focus:ring-blue-400 text-sm font-semibold transition-all">
-        <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
-    </div>
+            <!-- Search Bar -->
+            <div class="relative w-full group">
+                <input id="searchInput" oninput="doSearch()" placeholder="ابحث..."
+                    class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-sm py-3.5 px-12 outline-none focus:border-gold-400 focus:bg-white focus:ring-1 focus:ring-gold-400/50 transition-all duration-300 placeholder-gray-400 font-normal">
+                <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gold-400 text-lg group-focus-within:text-gold-600 transition-colors">
+                    🔍
+                </span>
+            </div>
 
-</div>
-
+        </div>
     </header>
 
-    <!-- المحتوى الرئيسي -->
-    <main class="container mx-auto max-w-4xl px-3 mt-4">
-        <div id="noResults" class="hidden text-center py-10 text-gray-500 font-bold">
-            لا توجد نتائج تطابق بحثك 
+    <!-- Main Content -->
+    <main class="container mx-auto max-w-5xl px-4 mt-8">
+        <!-- No Results Message -->
+        <div id="noResults" class="hidden text-center py-16">
+            <div class="text-gold-300 text-5xl mb-4">❖</div>
+            <p class="text-gray-400 text-lg">لا توجد نتائج تطابق بحثك</p>
         </div>
         
-        <div id="grid" class="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-3">
-            <!-- سيتم ملء المنتجات هنا بواسطة جافاسكريبت -->
+        <!-- Grid -->
+        <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <!-- Products injected here -->
         </div>
     </main>
 
-    <!-- المودال لعرض الصور -->
+    <!-- Image Modal -->
     <div id="imgModal" onclick="closeModal()">
-        <span class="absolute top-5 right-5 text-white text-3xl font-bold cursor-pointer">&times;</span>
-        <img id="modalContent" class="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl">
+        <span class="absolute top-6 right-6 text-gold-400 hover:text-white transition-colors text-4xl font-bold cursor-pointer">×</span>
+        <img id="modalContent" class="max-w-[90%] max-h-[85vh] rounded-sm shadow-2xl border border-gray-800">
     </div>
 
     <script>
+        // Data
         const products = [
             {
                 id: 1,
-                cat: "إلكترونيات",
                 title: "آيفون 15 برو ماكس",
                 desc: "تيتانيوم طبيعي، 256 جيجا، استخدام نظيف جداً مع الكرتون.",
                 region: "الرياض",
@@ -197,12 +235,10 @@
                 phone: "966500000000",
                 images: [
                     "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop",
-                    
                 ]
             },
             {
                 id: 2,
-                cat: "سيارات",
                 title: "تويوتا كامري 2023",
                 desc: "فل كامل هايبرد، ممشى قليل، بودي وكالة خالي من الرش.",
                 region: "جدة",
@@ -216,11 +252,10 @@
             },
             {
                 id: 3,
-                cat: "أثاث",
                 title: "كنب مودرن حرف L",
                 desc: "استخدام بسيط جداً، قماش مخمل فاخر، لون رمادي.",
                 region: "الدمام",
-                price: "1,500 ريال يمني ",
+                price: "1,500 ريال",
                 phone: "966500000000",
                 images: [
                     "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop",
@@ -229,9 +264,8 @@
             },
             {
                 id: 4,
-                cat: "حيوانات",
                 title: "قطط سكوتش فولد",
-                desc: "مطعمة ومدربة  لعوبة جداً.",
+                desc: "مطعمة ومدربة لعوبة جداً.",
                 region: "الخبر",
                 price: "800 ريال",
                 phone: "966500000000",
@@ -242,7 +276,6 @@
             },
             {
                 id: 5,
-                cat: "أجهزة",
                 title: "سوني بلايستيشن 5",
                 desc: "نسخة القرص، مع يدين تحكم وشريط فيفا 24.",
                 region: "مكة",
@@ -254,9 +287,8 @@
             },
             {
                 id: 6,
-                cat: "عقارات",
-                title: "زووووط انقررر لابوبو",
-                desc: "3 غرف وصالة، مطبخ راكب، مكيفات سبليت.",
+                title: "شقة فاخرة للإيجار",
+                desc: "3 غرف وصالة، مطبخ راكب، مكيفات سبليت، موقع مميز.",
                 region: "الرياض",
                 price: "45,000 ريال",
                 phone: "966500000000",
@@ -284,39 +316,49 @@
                 const controls = p.images.length > 1 ? `
                     <div class="arrow left" onclick="slide(this, -1)">‹</div>
                     <div class="arrow right" onclick="slide(this, 1)">›</div>
-                    <div class="counter">1 / ${p.images.length}</div>
+                    <div class="counter text-xs tracking-widest">1 / ${p.images.length}</div>
                     ${dots}
                 ` : "";
 
                 const html = `
-                <div class="product-box flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow duration-200">
+                <div class="product-box flex flex-col bg-white rounded-sm overflow-hidden shadow-sm border border-gray-100 h-full hover:shadow-xl hover:border-gold-200 transition-all duration-500 group">
                     
-                    <div class="relative h-44 md:h-56 overflow-hidden bg-gray-200 group">
+                    <!-- Image Section -->
+                    <div class="relative h-64 overflow-hidden bg-gray-100">
                         ${controls}
                         <div class="slider-container no-scrollbar" onscroll="updateUI(this)">
                             ${sliderImages}
                         </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
 
-                    <div class="p-3 flex flex-col text-right flex-grow">
-                        <div class="flex justify-between items-start mb-1">
-                            <h3 class="font-extrabold text-gray-900 text-[13px] leading-tight line-clamp-1">${p.title}</h3>
-                            <span class="text-[9px] bg-gray-100 text-gray-500 py-0.5 px-2 rounded-md whitespace-nowrap">${p.cat}</span>
+                    <!-- Content Section -->
+                    <div class="p-5 flex flex-col flex-grow text-right relative">
+                        <div class="mt-2 mb-3">
+                            <h3 class="font-bold text-gray-900 text-lg leading-tight group-hover:text-gold-600 transition-colors">${p.title}</h3>
                         </div>
                         
-                        <p class="text-[11px] text-gray-500 font-medium mb-2 line-clamp-2 leading-relaxed">${p.desc}</p>
+                        <p class="text-xs text-gray-500 font-normal mb-4 line-clamp-2 leading-relaxed tracking-wide border-b border-gray-50 pb-4">
+                            ${p.desc}
+                        </p>
                         
                         <div class="mt-auto">
-                            <div class="flex items-center text-[10px] text-gray-400 font-bold mb-2">
-                                <span class="ml-1">📍</span> ${p.region}
+                            <!-- Region -->
+                            <div class="flex items-center text-[11px] text-gray-400 mb-4 font-medium">
+                                <span class="ml-1 text-gold-500">📍</span> ${p.region}
                             </div>
                             
-                            <div class="flex items-center justify-between">
-                                <div class="text-blue-600 font-extrabold text-sm">${p.price}</div>
+                            <div class="flex items-center justify-between pt-2">
+                                <!-- Price -->
+                                <div class="font-bold text-xl text-gray-800">
+                                    ${p.price}
+                                </div>
+                                
+                                <!-- Contact Button: Black Background, White Text -->
                                 <a href="https://wa.me/${p.phone}?text=السلام عليكم، بخصوص إعلان ${p.title}" target="_blank"
-                                   class="bg-[#25D366] hover:bg-[#20bd5a] text-white py-1.5 px-3 rounded-lg text-[10px] font-bold flex items-center transition-colors">
-                                    <span>تواصل مع البائع</span>
-                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-8.683-2.031-9.676-.272-.99-.47-.149-.718.1-.248.248-1.016 1.152-1.29 1.152-.32 0-.395-.494-1.708-1.089-.868-.521-1.637-1.314-2.325-2.226-.816-1.082-1.229-2.049-1.328-2.296-.098-.248-.006-.381.118-.505.113-.113.248-.297.372-.446.124-.149.173-.248.248-.421.075-.173.025-.322-.025-.421-.049-.099-.446-1.066-.619-1.463-.167-.384-.336-.322-.46-.327-.113-.005-.248-.005-.383-.005-.136 0-.36.05-.546.248-.186.198-.718.718-.718 1.734s.743 2.008.842 2.132c.099.124 1.463 2.258 3.565 3.142 2.102.884 2.102.589 2.499.545.397-.044 1.289-.52 1.463-1.04.174-.52.174-.967.124-1.041z"/></svg>
+                                   class="bg-black hover:bg-gray-800 text-white py-2 px-4 rounded-sm text-[11px] font-bold flex items-center transition-all duration-300 shadow-md">
+                                    <span class="ml-2">تواصل مع البائع</span>
+                                    <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-8.683-2.031-9.676-.272-.99-.47-.149-.718.1-.248.248-1.016 1.152-1.29 1.152-.32 0-.395-.494-1.708-1.089-.868-.521-1.637-1.314-2.325-2.226-.816-1.082-1.229-2.049-1.328-2.296-.098-.248-.006-.381.118-.505.113-.113.248-.297.372-.446.124-.149.173-.248.248-.421.075-.173.025-.322-.025-.421-.049-.099-.446-1.066-.619-1.463-.167-.384-.336-.322-.46-.327-.113-.005-.248-.005-.383-.005-.136 0-.36.05-.546.248-.186.198-.718.718-.718 1.734s.743 2.008.842 2.132c.099.124 1.463 2.258 3.565 3.142 2.102.884 2.102.589 2.499.545.397-.044 1.289-.52 1.463-1.04.174-.52.174-.967.124-1.041z"/></svg>
                                 </a>
                             </div>
                         </div>
@@ -339,7 +381,7 @@
         }
 
         function updateUI(slider) {
-            const box = slider.parentElement;
+            const box = slider.parentElement.parentElement;
             const imgs = slider.children.length;
             let scrollLeft = Math.abs(slider.scrollLeft);
             const index = Math.round(scrollLeft / slider.offsetWidth);
